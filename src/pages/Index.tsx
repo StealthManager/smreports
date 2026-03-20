@@ -1,16 +1,38 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { OverviewSection } from "@/components/dashboard/OverviewSection";
+import { LeadQualitySection } from "@/components/dashboard/LeadQualitySection";
+import { AdPerformanceSection } from "@/components/dashboard/AdPerformanceSection";
+import { MaterialApprovalSection } from "@/components/dashboard/MaterialApprovalSection";
+import { IntegrationsSection } from "@/components/dashboard/IntegrationsSection";
+import { TeamSection } from "@/components/dashboard/TeamSection";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+type Section = "overview" | "leads" | "ads" | "materials" | "integrations" | "team";
+
+const Index = () => {
+  const [activeSection, setActiveSection] = useState<Section>("overview");
+
+  const renderSection = () => {
+    switch (activeSection) {
+      case "overview": return <OverviewSection />;
+      case "leads": return <LeadQualitySection />;
+      case "ads": return <AdPerformanceSection />;
+      case "materials": return <MaterialApprovalSection />;
+      case "integrations": return <IntegrationsSection />;
+      case "team": return <TeamSection />;
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
+    <div className="flex min-h-screen">
+      <DashboardSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+      <main className="flex-1 overflow-auto">
+        <div className="p-6 lg:p-8 max-w-[1400px]">
+          {renderSection()}
+        </div>
+      </main>
     </div>
   );
 };
-
-const Index = PlaceholderIndex;
 
 export default Index;
