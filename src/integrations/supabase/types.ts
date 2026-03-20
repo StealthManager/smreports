@@ -14,16 +14,348 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ad_spend: {
+        Row: {
+          amount: number
+          channel: string
+          clicks: number | null
+          closer_id: string | null
+          created_at: string
+          id: string
+          impressions: number | null
+          month: string
+          product: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          channel: string
+          clicks?: number | null
+          closer_id?: string | null
+          created_at?: string
+          id?: string
+          impressions?: number | null
+          month: string
+          product?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          channel?: string
+          clicks?: number | null
+          closer_id?: string | null
+          created_at?: string
+          id?: string
+          impressions?: number | null
+          month?: string
+          product?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_spend_closer_id_fkey"
+            columns: ["closer_id"]
+            isOneToOne: false
+            referencedRelation: "closers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      closers: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      integrations: {
+        Row: {
+          api_key_ref: string | null
+          config: Json | null
+          created_at: string
+          id: string
+          last_sync_at: string | null
+          leads_imported: number | null
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          api_key_ref?: string | null
+          config?: Json | null
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          leads_imported?: number | null
+          name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          api_key_ref?: string | null
+          config?: Json | null
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          leads_imported?: number | null
+          name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          closed_on: string | null
+          closer_id: string | null
+          company: string | null
+          created_at: string
+          deal_size: number | null
+          first_call_date: string | null
+          ghl_contact_id: string | null
+          id: string
+          last_followup: string | null
+          name: string
+          next_steps: string | null
+          pipeline_stage: Database["public"]["Enums"]["lead_stage"]
+          qualification:
+            | Database["public"]["Enums"]["lead_qualification"]
+            | null
+          reason: string | null
+          revenue: number | null
+          sales_cycle_days: number | null
+          service: string | null
+          show_up: boolean | null
+          source: string | null
+          updated_at: string
+          utm: string | null
+        }
+        Insert: {
+          closed_on?: string | null
+          closer_id?: string | null
+          company?: string | null
+          created_at?: string
+          deal_size?: number | null
+          first_call_date?: string | null
+          ghl_contact_id?: string | null
+          id?: string
+          last_followup?: string | null
+          name: string
+          next_steps?: string | null
+          pipeline_stage?: Database["public"]["Enums"]["lead_stage"]
+          qualification?:
+            | Database["public"]["Enums"]["lead_qualification"]
+            | null
+          reason?: string | null
+          revenue?: number | null
+          sales_cycle_days?: number | null
+          service?: string | null
+          show_up?: boolean | null
+          source?: string | null
+          updated_at?: string
+          utm?: string | null
+        }
+        Update: {
+          closed_on?: string | null
+          closer_id?: string | null
+          company?: string | null
+          created_at?: string
+          deal_size?: number | null
+          first_call_date?: string | null
+          ghl_contact_id?: string | null
+          id?: string
+          last_followup?: string | null
+          name?: string
+          next_steps?: string | null
+          pipeline_stage?: Database["public"]["Enums"]["lead_stage"]
+          qualification?:
+            | Database["public"]["Enums"]["lead_qualification"]
+            | null
+          reason?: string | null
+          revenue?: number | null
+          sales_cycle_days?: number | null
+          service?: string | null
+          show_up?: boolean | null
+          source?: string | null
+          updated_at?: string
+          utm?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_closer_id_fkey"
+            columns: ["closer_id"]
+            isOneToOne: false
+            referencedRelation: "closers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      materials: {
+        Row: {
+          channel: string | null
+          created_at: string
+          description: string | null
+          file_url: string | null
+          id: string
+          review_notes: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["material_status"]
+          submitted_by: string | null
+          title: string
+          type: Database["public"]["Enums"]["material_type"]
+          updated_at: string
+        }
+        Insert: {
+          channel?: string | null
+          created_at?: string
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          review_notes?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["material_status"]
+          submitted_by?: string | null
+          title: string
+          type: Database["public"]["Enums"]["material_type"]
+          updated_at?: string
+        }
+        Update: {
+          channel?: string | null
+          created_at?: string
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          review_notes?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["material_status"]
+          submitted_by?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["material_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      utm_performance: {
+        Row: {
+          created_at: string
+          hot_rate: number | null
+          id: string
+          month: string
+          spend: number | null
+          total_leads: number | null
+          utm: string
+          won_rate: number | null
+        }
+        Insert: {
+          created_at?: string
+          hot_rate?: number | null
+          id?: string
+          month: string
+          spend?: number | null
+          total_leads?: number | null
+          utm: string
+          won_rate?: number | null
+        }
+        Update: {
+          created_at?: string
+          hot_rate?: number | null
+          id?: string
+          month?: string
+          spend?: number | null
+          total_leads?: number | null
+          utm?: string
+          won_rate?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "closer" | "media_buyer" | "viewer"
+      lead_qualification: "sql_qualified" | "mql" | "not_a_good_fit" | "na"
+      lead_stage:
+        | "cold_lead"
+        | "general_lead"
+        | "hot_lead"
+        | "unpaid_invoice"
+        | "opportunity_won"
+        | "not_a_good_fit"
+        | "no_show"
+      material_status: "pending" | "approved" | "rejected"
+      material_type: "image" | "text" | "video"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +482,20 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "closer", "media_buyer", "viewer"],
+      lead_qualification: ["sql_qualified", "mql", "not_a_good_fit", "na"],
+      lead_stage: [
+        "cold_lead",
+        "general_lead",
+        "hot_lead",
+        "unpaid_invoice",
+        "opportunity_won",
+        "not_a_good_fit",
+        "no_show",
+      ],
+      material_status: ["pending", "approved", "rejected"],
+      material_type: ["image", "text", "video"],
+    },
   },
 } as const
