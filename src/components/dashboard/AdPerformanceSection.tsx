@@ -75,7 +75,7 @@ export function AdPerformanceSection() {
                 return (
                   <tr key={i} className="border-b border-border/50 hover:bg-muted/40 transition-colors">
                     <td className="px-6 py-3.5 font-medium max-w-xs truncate">{row.utm}</td>
-                    <td className="px-6 py-3.5 font-mono tabular-nums">${("spend" in row ? row.spend : 0).toLocaleString()}</td>
+                    <td className="px-6 py-3.5 font-mono tabular-nums">${row.spend.toLocaleString()}</td>
                     <td className="px-6 py-3.5 font-mono tabular-nums">{row.totalLeads}</td>
                     <td className="px-6 py-3.5 font-mono tabular-nums">{row.hotRate.toFixed(1)}%</td>
                     <td className="px-6 py-3.5 font-mono tabular-nums text-metric-positive">{row.wonRate.toFixed(1)}%</td>
