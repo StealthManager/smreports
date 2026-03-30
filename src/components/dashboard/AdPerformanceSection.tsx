@@ -15,7 +15,7 @@ export function AdPerformanceSection() {
 
   const chartData = sorted.slice(0, 10).map((d) => ({
     name: d.utm.length > 35 ? d.utm.slice(0, 35) + "…" : d.utm,
-    spend: "spend" in d ? d.spend : 0,
+    spend: d.spend,
     leads: d.totalLeads,
   }));
 
