@@ -6,10 +6,12 @@ import { Loader2 } from "lucide-react";
 export function AdPerformanceSection() {
   const { data: liveData, loading } = useAdPerformanceData();
 
-  const source = liveData.length > 0 ? liveData : staticUtm;
+  const source = liveData.length > 0
+    ? liveData
+    : staticUtm.map((d) => ({ ...d, spend: 0 }));
   const isLive = liveData.length > 0;
 
-  const sorted = [...source].sort((a, b) => (b.spend || 0) - (a.spend || 0));
+  const sorted = [...source].sort((a, b) => b.spend - a.spend);
 
   const chartData = sorted.slice(0, 10).map((d) => ({
     name: d.utm.length > 35 ? d.utm.slice(0, 35) + "…" : d.utm,
