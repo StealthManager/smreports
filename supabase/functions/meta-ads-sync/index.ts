@@ -17,8 +17,11 @@ Deno.serve(async (req) => {
     const META_TOKEN = Deno.env.get("META_ADS_TOKEN");
     if (!META_TOKEN) throw new Error("META_ADS_TOKEN secret not configured");
 
-    const AD_ACCOUNT_ID = Deno.env.get("META_AD_ACCOUNT_ID");
+    let AD_ACCOUNT_ID = Deno.env.get("META_AD_ACCOUNT_ID");
     if (!AD_ACCOUNT_ID) throw new Error("META_AD_ACCOUNT_ID secret not configured");
+    // Normalize: accept "act=123", "act_123", or plain "123"
+    AD_ACCOUNT_ID = AD_ACCOUNT_ID.replace(/^act[=_]?/, "");
+    AD_ACCOUNT_ID = `act_${AD_ACCOUNT_ID}`;
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
