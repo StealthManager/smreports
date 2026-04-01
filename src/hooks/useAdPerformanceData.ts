@@ -8,6 +8,9 @@ export interface UtmRow {
   hotRate: number;
   wonRate: number;
   spend: number;
+  level: "campaign" | "adset" | "ad";
+  campaignName: string | null;
+  adsetName: string | null;
 }
 
 export function useAdPerformanceData(dateRange?: DateRange) {
@@ -20,7 +23,7 @@ export function useAdPerformanceData(dateRange?: DateRange) {
       try {
         let query = supabase
           .from("utm_performance")
-          .select("utm, total_leads, hot_rate, won_rate, spend")
+          .select("utm, total_leads, hot_rate, won_rate, spend, level, campaign_name, adset_name")
           .order("spend", { ascending: false });
 
         if (dateRange) {
@@ -33,12 +36,15 @@ export function useAdPerformanceData(dateRange?: DateRange) {
 
         if (rows && rows.length > 0) {
           setData(
-            rows.map((r) => ({
+            rows.map((r: any) => ({
               utm: r.utm,
               totalLeads: r.total_leads ?? 0,
               hotRate: r.hot_rate ?? 0,
               wonRate: r.won_rate ?? 0,
               spend: r.spend ?? 0,
+              level: r.level ?? "ad",
+              campaignName: r.campaign_name ?? null,
+              adsetName: r.adset_name ?? null,
             }))
           );
         } else {

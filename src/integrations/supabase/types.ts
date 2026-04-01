@@ -299,9 +299,12 @@ export type Database = {
       }
       utm_performance: {
         Row: {
+          adset_name: string | null
+          campaign_name: string | null
           created_at: string
           hot_rate: number | null
           id: string
+          level: string
           month: string
           spend: number | null
           total_leads: number | null
@@ -309,9 +312,12 @@ export type Database = {
           won_rate: number | null
         }
         Insert: {
+          adset_name?: string | null
+          campaign_name?: string | null
           created_at?: string
           hot_rate?: number | null
           id?: string
+          level?: string
           month: string
           spend?: number | null
           total_leads?: number | null
@@ -319,9 +325,12 @@ export type Database = {
           won_rate?: number | null
         }
         Update: {
+          adset_name?: string | null
+          campaign_name?: string | null
           created_at?: string
           hot_rate?: number | null
           id?: string
+          level?: string
           month?: string
           spend?: number | null
           total_leads?: number | null
