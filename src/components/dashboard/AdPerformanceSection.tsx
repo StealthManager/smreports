@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { useAdPerformanceData } from "@/hooks/useAdPerformanceData";
 import { utmPerformance as staticUtm } from "@/data/dashboard-data";
+import { DateRangeFilter, getDefaultRange, type DateRange } from "./DateRangeFilter";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Loader2 } from "lucide-react";
 
 export function AdPerformanceSection() {
-  const { data: liveData, loading } = useAdPerformanceData();
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultRange());
+  const { data: liveData, loading } = useAdPerformanceData(dateRange);
 
   const source = liveData.length > 0
     ? liveData
@@ -29,12 +32,15 @@ export function AdPerformanceSection() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Ad Performance & UTM Tracking</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Creative performance by ad, spend and conversion quality
-          {!isLive && <span className="ml-2 text-xs text-warning">(sample data)</span>}
-        </p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Ad Performance & UTM Tracking</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Creative performance by ad, spend and conversion quality
+            {!isLive && <span className="ml-2 text-xs text-warning">(sample data)</span>}
+          </p>
+        </div>
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
       </div>
 
       {/* Spend by Ad Chart */}

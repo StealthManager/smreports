@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { DateRange } from "@/components/dashboard/DateRangeFilter";
 
 export interface UtmRow {
   utm: string;
@@ -9,17 +10,26 @@ export interface UtmRow {
   spend: number;
 }
 
-export function useAdPerformanceData() {
+export function useAdPerformanceData(dateRange?: DateRange) {
   const [data, setData] = useState<UtmRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetch() {
+    async function fetchData() {
+      setLoading(true);
       try {
-        const { data: rows } = await supabase
+        let query = supabase
           .from("utm_performance")
           .select("utm, total_leads, hot_rate, won_rate, spend")
           .order("spend", { ascending: false });
+
+        if (dateRange) {
+          const fromMonth = dateRange.from.toISOString().slice(0, 7);
+          const toMonth = dateRange.to.toISOString().slice(0, 7);
+          query = query.gte("month", fromMonth).lte("month", toMonth);
+        }
+
+        const { data: rows } = await query;
 
         if (rows && rows.length > 0) {
           setData(
@@ -31,6 +41,8 @@ export function useAdPerformanceData() {
               spend: r.spend ?? 0,
             }))
           );
+        } else {
+          setData([]);
         }
       } catch (err) {
         console.error("Failed to fetch UTM data:", err);
@@ -38,8 +50,8 @@ export function useAdPerformanceData() {
         setLoading(false);
       }
     }
-    fetch();
-  }, []);
+    fetchData();
+  }, [dateRange?.from?.toISOString(), dateRange?.to?.toISOString()]);
 
   return { data, loading };
 }

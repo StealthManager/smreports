@@ -1,13 +1,15 @@
+import { useState } from "react";
 import { useOverviewData } from "@/hooks/useOverviewData";
 import { overviewMetrics as staticMetrics, closerPerformance as staticClosers, weeklyApproval as staticWeekly } from "@/data/dashboard-data";
 import { MetricCard } from "./MetricCard";
+import { DateRangeFilter, getDefaultRange, type DateRange } from "./DateRangeFilter";
 import { DollarSign, Users, PhoneCall, TrendingUp, Target, Repeat, Loader2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LineChart, Line } from "recharts";
 
 export function OverviewSection() {
-  const { metrics: dbMetrics, closerPerformance: dbClosers, weeklyApproval: dbWeekly, loading } = useOverviewData();
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultRange());
+  const { metrics: dbMetrics, closerPerformance: dbClosers, weeklyApproval: dbWeekly, loading } = useOverviewData(dateRange);
 
-  // Use DB data if available, otherwise fall back to static
   const hasDbData = dbMetrics && dbMetrics.totalSpent > 0;
   const metrics = hasDbData ? dbMetrics : staticMetrics;
   const closers = dbClosers.length > 0 ? dbClosers : staticClosers;
@@ -27,12 +29,15 @@ export function OverviewSection() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Dashboard Overview</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          {metrics.month} — Stealth Agency Performance
-          {!hasDbData && <span className="ml-2 text-xs text-warning">(sample data)</span>}
-        </p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard Overview</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            {metrics.month} — Stealth Agency Performance
+            {!hasDbData && <span className="ml-2 text-xs text-warning">(sample data)</span>}
+          </p>
+        </div>
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
       </div>
 
       {/* Top Metrics */}
