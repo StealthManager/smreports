@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { DateRange } from "@/components/dashboard/DateRangeFilter";
 
 interface CloserPerf {
   name: string;
@@ -35,7 +36,7 @@ interface WeeklyApproval {
   rate: number;
 }
 
-export function useOverviewData() {
+export function useOverviewData(dateRange?: DateRange) {
   const [metrics, setMetrics] = useState<OverviewMetrics | null>(null);
   const [closerPerformance, setCloserPerformance] = useState<CloserPerf[]>([]);
   const [weeklyApproval, setWeeklyApproval] = useState<WeeklyApproval[]>([]);
@@ -43,25 +44,38 @@ export function useOverviewData() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [dateRange?.from?.toISOString(), dateRange?.to?.toISOString()]);
 
   const fetchData = async () => {
+    setLoading(true);
     try {
+      let leadsQuery = supabase.from("leads").select("*");
+      let adSpendQuery = supabase.from("ad_spend").select("*");
+      const closersQuery = supabase.from("closers").select("*");
+
+      if (dateRange) {
+        const fromStr = dateRange.from.toISOString();
+        const toStr = dateRange.to.toISOString();
+        leadsQuery = leadsQuery.gte("created_at", fromStr).lte("created_at", toStr);
+        // ad_spend uses month column (YYYY-MM)
+        const fromMonth = dateRange.from.toISOString().slice(0, 7);
+        const toMonth = dateRange.to.toISOString().slice(0, 7);
+        adSpendQuery = adSpendQuery.gte("month", fromMonth).lte("month", toMonth);
+      }
+
       const [leadsRes, adSpendRes, closersRes] = await Promise.all([
-        supabase.from("leads").select("*"),
-        supabase.from("ad_spend").select("*"),
-        supabase.from("closers").select("*"),
+        leadsQuery,
+        adSpendQuery,
+        closersQuery,
       ]);
 
       const leads = leadsRes.data || [];
       const adSpend = adSpendRes.data || [];
       const closers = closersRes.data || [];
 
-      // Build closer name map
       const closerMap: Record<string, string> = {};
       closers.forEach((c) => { closerMap[c.id] = c.name; });
 
-      // Ad spend totals
       const totalSpent = adSpend.reduce((s, r) => s + Number(r.amount), 0);
       const spendByProduct: Record<string, number> = {};
       adSpend.forEach((r) => {
@@ -69,19 +83,15 @@ export function useOverviewData() {
         spendByProduct[prod] = (spendByProduct[prod] || 0) + Number(r.amount);
       });
 
-      // Lead metrics
       const wonLeads = leads.filter((l) => l.pipeline_stage === "opportunity_won");
-      const hotLeads = leads.filter((l) => l.pipeline_stage === "hot_lead");
       const showUpLeads = leads.filter((l) => l.show_up);
       const newRevenue = wonLeads.reduce((s, l) => s + Number(l.revenue || l.deal_size || 0), 0);
-      // Estimate recurring as deals with WL/CA services
       const recurringRevenue = wonLeads
         .filter((l) => ["WL", "CA", "WL + AM", "WL + CFAM"].includes(l.service || ""))
         .reduce((s, l) => s + Number(l.revenue || l.deal_size || 0), 0);
 
       const totalROAS = totalSpent > 0 ? parseFloat((newRevenue / totalSpent).toFixed(2)) : 0;
 
-      // Closer performance
       const closerIds = [...new Set(leads.map((l) => l.closer_id).filter(Boolean))];
       const closerSpend: Record<string, number> = {};
       adSpend.forEach((r) => {
@@ -114,7 +124,6 @@ export function useOverviewData() {
         };
       });
 
-      // Weekly approval (group leads by week of first_call_date)
       const weekMap: Record<string, { total: number; approved: number }> = {};
       leads.forEach((l) => {
         if (!l.first_call_date) return;
@@ -138,8 +147,9 @@ export function useOverviewData() {
         }))
         .sort((a, b) => new Date(a.week).getTime() - new Date(b.week).getTime());
 
-      const now = new Date();
-      const monthLabel = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      const monthLabel = dateRange
+        ? `${dateRange.from.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${dateRange.to.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+        : new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
       setMetrics({
         totalSpent,
