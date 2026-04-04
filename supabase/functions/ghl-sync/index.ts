@@ -80,24 +80,25 @@ Deno.serve(async (req) => {
       });
     }
 
-    // --- Fetch pipeline stages to build a name map ---
+    // --- Fetch pipeline stages from pipelines list endpoint ---
     const stageMap: Record<string, string> = {};
-    if (pipelineId) {
-      try {
-        const res = await fetch(`${GHL_BASE}/opportunities/pipelines/${pipelineId}?locationId=${locationId}`, {
-          headers: ghlHeaders,
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const stages: PipelineStage[] = data.pipeline?.stages || data.stages || [];
-          for (const s of stages) {
+    try {
+      const res = await fetch(`${GHL_BASE}/opportunities/pipelines?locationId=${locationId}`, {
+        headers: ghlHeaders,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const pipelines = data.pipelines || [];
+        for (const pl of pipelines) {
+          if (pipelineId && pl.id !== pipelineId) continue;
+          for (const s of (pl.stages || [])) {
             stageMap[s.id] = s.name;
           }
-          console.log("Pipeline stages found:", JSON.stringify(stageMap));
         }
-      } catch (e) {
-        console.error("Failed to fetch pipeline stages:", e);
+        console.log("Pipeline stages found:", JSON.stringify(stageMap));
       }
+    } catch (e) {
+      console.error("Failed to fetch pipeline stages:", e);
     }
 
     // --- Fetch opportunities ---
