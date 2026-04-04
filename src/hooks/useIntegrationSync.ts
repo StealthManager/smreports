@@ -5,7 +5,7 @@ import { toast } from "@/hooks/use-toast";
 export function useIntegrationSync() {
   const [syncing, setSyncing] = useState<Record<string, boolean>>({});
 
-  const syncGHL = async (locationId?: string, pipelineId?: string) => {
+  const syncGHL = async (locationId: string = "jsauqaKSnuB5fJ4pt5JG", pipelineId: string = "uP4c8hW4lt1AhQbW2DS5") => {
     setSyncing((s) => ({ ...s, GoHighLevel: true }));
     try {
       const { data, error } = await supabase.functions.invoke("ghl-sync", {
