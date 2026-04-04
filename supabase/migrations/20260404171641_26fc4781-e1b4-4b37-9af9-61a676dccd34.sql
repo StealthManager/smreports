@@ -1,0 +1,1 @@
+ALTER TABLE public.leads ADD CONSTRAINT leads_ghl_contact_id_key UNIQUE (ghl_contact_id);
