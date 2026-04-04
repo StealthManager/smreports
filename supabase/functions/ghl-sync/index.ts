@@ -14,6 +14,7 @@ interface GHLOpportunity {
   contact?: { id: string; name?: string; companyName?: string };
   monetaryValue?: number;
   pipelineStageId?: string;
+  pipelineId?: string;
   status?: string;
   source?: string;
   assignedTo?: string;
@@ -41,10 +42,12 @@ Deno.serve(async (req) => {
 
     let locationId = "";
     let pipelineId = "";
+    let listPipelines = false;
     try {
       const body = await req.json();
       locationId = body.locationId || "";
       pipelineId = body.pipelineId || "";
+      listPipelines = body.listPipelines || false;
     } catch {
       // no body is fine
     }
@@ -61,6 +64,21 @@ Deno.serve(async (req) => {
       "Content-Type": "application/json",
       Version: "2021-07-28",
     };
+
+    // --- List pipelines mode ---
+    if (listPipelines) {
+      const res = await fetch(`${GHL_BASE}/opportunities/pipelines?locationId=${locationId}`, {
+        headers: ghlHeaders,
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`GHL pipelines API error [${res.status}]: ${errText}`);
+      }
+      const data = await res.json();
+      return new Response(JSON.stringify({ success: true, pipelines: data.pipelines || [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // --- Fetch pipeline stages to build a name map ---
     const stageMap: Record<string, string> = {};
@@ -100,24 +118,27 @@ Deno.serve(async (req) => {
 
     console.log(`Fetched ${opportunities.length} opportunities`);
 
-    // Log unique statuses and stage IDs for debugging
+    // Log unique statuses, stage IDs and pipeline IDs
     const uniqueStatuses = new Set<string>();
-    const uniqueStageIds = new Set<string>();
+    const uniqueStageNames = new Set<string>();
+    const uniquePipelineIds = new Set<string>();
     for (const opp of opportunities) {
       if (opp.status) uniqueStatuses.add(opp.status);
-      if (opp.pipelineStageId) uniqueStageIds.add(opp.pipelineStageId);
+      if (opp.pipelineStageId && stageMap[opp.pipelineStageId]) {
+        uniqueStageNames.add(stageMap[opp.pipelineStageId]);
+      }
+      if (opp.pipelineId) uniquePipelineIds.add(opp.pipelineId);
     }
     console.log("Unique statuses:", JSON.stringify([...uniqueStatuses]));
-    console.log("Unique stageIds:", JSON.stringify([...uniqueStageIds]));
+    console.log("Unique stage names:", JSON.stringify([...uniqueStageNames]));
+    console.log("Unique pipeline IDs:", JSON.stringify([...uniquePipelineIds]));
 
-    // --- Map pipeline stage using stage name from stageMap ---
+    // --- Map pipeline stage using stage name ---
     function mapStage(opp: GHLOpportunity): string {
-      // First try stage name from pipeline stages
       const stageName = opp.pipelineStageId ? stageMap[opp.pipelineStageId] : undefined;
       const name = (stageName || "").toLowerCase();
       const status = (opp.status || "").toLowerCase();
 
-      // Check stage name first (more specific)
       if (name.includes("won") || name.includes("closed") || name.includes("client")) return "opportunity_won";
       if (name.includes("hot")) return "hot_lead";
       if (name.includes("unpaid") || name.includes("invoice")) return "unpaid_invoice";
@@ -126,7 +147,6 @@ Deno.serve(async (req) => {
       if (name.includes("general") || name.includes("warm") || name.includes("qualified") || name.includes("booked")) return "general_lead";
       if (name.includes("new") || name.includes("cold") || name.includes("prospect")) return "cold_lead";
 
-      // Fallback to status
       if (status === "won") return "opportunity_won";
       if (status === "lost" || status === "abandoned") return "not_a_good_fit";
       if (status === "open") return "general_lead";
@@ -134,30 +154,44 @@ Deno.serve(async (req) => {
       return "cold_lead";
     }
 
-    // --- Batch upsert leads ---
+    // --- Deduplicate by contact ID (keep the latest/highest value) ---
+    const contactMap = new Map<string, ReturnType<typeof buildLeadRow>>();
+    
+    function buildLeadRow(opp: GHLOpportunity) {
+      const contactId = opp.contact?.id || opp.id;
+      return {
+        ghl_contact_id: contactId,
+        name: opp.contact?.name || opp.name || "Unknown",
+        company: opp.contact?.companyName || null,
+        pipeline_stage: mapStage(opp),
+        deal_size: opp.monetaryValue || 0,
+        revenue: opp.status === "won" ? (opp.monetaryValue || 0) : 0,
+        source: opp.source || null,
+      };
+    }
+
+    for (const opp of opportunities) {
+      const row = buildLeadRow(opp);
+      const existing = contactMap.get(row.ghl_contact_id);
+      // Keep the one with higher deal_size or won status
+      if (!existing || row.deal_size > existing.deal_size || row.pipeline_stage === "opportunity_won") {
+        contactMap.set(row.ghl_contact_id, row);
+      }
+    }
+
+    const uniqueLeads = [...contactMap.values()];
+    console.log(`Deduplicated to ${uniqueLeads.length} unique leads`);
+
+    // --- Batch upsert ---
     let upserted = 0;
     let errors = 0;
     const BATCH_SIZE = 50;
 
-    for (let i = 0; i < opportunities.length; i += BATCH_SIZE) {
-      const batch = opportunities.slice(i, i + BATCH_SIZE);
-      const rows = batch.map((opp) => {
-        const contactId = opp.contact?.id || opp.id;
-        const stageName = opp.pipelineStageId ? stageMap[opp.pipelineStageId] : undefined;
-        return {
-          ghl_contact_id: contactId,
-          name: opp.contact?.name || opp.name || "Unknown",
-          company: opp.contact?.companyName || null,
-          pipeline_stage: mapStage(opp),
-          deal_size: opp.monetaryValue || 0,
-          revenue: opp.status === "won" ? (opp.monetaryValue || 0) : 0,
-          source: opp.source || null,
-        };
-      });
-
-      const { error, count } = await supabase
+    for (let i = 0; i < uniqueLeads.length; i += BATCH_SIZE) {
+      const batch = uniqueLeads.slice(i, i + BATCH_SIZE);
+      const { error } = await supabase
         .from("leads")
-        .upsert(rows, { onConflict: "ghl_contact_id" });
+        .upsert(batch, { onConflict: "ghl_contact_id" });
 
       if (error) {
         console.error(`Batch upsert error (batch ${i / BATCH_SIZE}):`, error.message);
@@ -180,10 +214,13 @@ Deno.serve(async (req) => {
     const summary = {
       success: true,
       opportunitiesFetched: opportunities.length,
+      uniqueContacts: uniqueLeads.length,
       leadsUpserted: upserted,
       errors,
       pipelineStages: stageMap,
       uniqueStatuses: [...uniqueStatuses],
+      uniqueStageNames: [...uniqueStageNames],
+      uniquePipelineIds: [...uniquePipelineIds],
       syncedAt: new Date().toISOString(),
     };
 
