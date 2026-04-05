@@ -168,6 +168,7 @@ Deno.serve(async (req) => {
         deal_size: opp.monetaryValue || 0,
         revenue: opp.status === "won" ? (opp.monetaryValue || 0) : 0,
         source: opp.source || null,
+        created_at: opp.dateAdded || new Date().toISOString(),
       };
     }
 
