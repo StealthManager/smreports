@@ -118,15 +118,6 @@ Deno.serve(async (req) => {
     }
 
     console.log(`Fetched ${opportunities.length} opportunities`);
-    // Debug: log first opportunity fields
-    if (opportunities.length > 0) {
-      const sample = opportunities[0];
-      console.log("Sample opportunity keys:", Object.keys(sample));
-      console.log("Sample dateAdded:", sample.dateAdded);
-      console.log("Sample createdAt:", (sample as any).createdAt);
-      console.log("Sample created_at:", (sample as any).created_at);
-      console.log("Sample date:", (sample as any).date);
-    }
 
     // Log unique statuses, stage IDs and pipeline IDs
     const uniqueStatuses = new Set<string>();
