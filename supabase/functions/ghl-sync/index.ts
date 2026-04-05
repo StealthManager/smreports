@@ -18,7 +18,7 @@ interface GHLOpportunity {
   status?: string;
   source?: string;
   assignedTo?: string;
-  dateAdded?: string;
+  createdAt?: string;
   customFields?: Record<string, string>[];
 }
 
