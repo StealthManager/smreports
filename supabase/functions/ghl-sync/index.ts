@@ -18,7 +18,7 @@ interface GHLOpportunity {
   status?: string;
   source?: string;
   assignedTo?: string;
-  dateAdded?: string;
+  createdAt?: string;
   customFields?: Record<string, string>[];
 }
 
@@ -168,6 +168,7 @@ Deno.serve(async (req) => {
         deal_size: opp.monetaryValue || 0,
         revenue: opp.status === "won" ? (opp.monetaryValue || 0) : 0,
         source: opp.source || null,
+        created_at: opp.createdAt || new Date().toISOString(),
       };
     }
 
