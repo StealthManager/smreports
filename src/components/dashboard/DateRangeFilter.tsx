@@ -84,7 +84,9 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
     <div className="flex items-center gap-2 flex-wrap">
       <Select value={preset} onValueChange={handlePreset}>
         <SelectTrigger className="w-[180px] h-9 text-sm">
-          <SelectValue />
+          <SelectValue placeholder="Selecione">
+            {presets.find((p) => p.value === preset)?.label}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {presets.map((p) => (
