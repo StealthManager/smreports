@@ -177,6 +177,7 @@ Deno.serve(async (req) => {
     
     function buildLeadRow(opp: GHLOpportunity) {
       const contactId = opp.contact?.id || opp.id;
+      const tags = opp.tags || opp.contact?.tags || [];
       return {
         ghl_contact_id: contactId,
         name: opp.contact?.name || opp.name || "Unknown",
@@ -186,6 +187,7 @@ Deno.serve(async (req) => {
         revenue: opp.status === "won" ? (opp.monetaryValue || 0) : 0,
         source: opp.source || null,
         created_at: opp.createdAt || new Date().toISOString(),
+        tags,
       };
     }
 
