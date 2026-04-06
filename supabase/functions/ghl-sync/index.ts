@@ -242,6 +242,7 @@ Deno.serve(async (req) => {
       uniqueStatuses: [...uniqueStatuses],
       uniqueStageNames: [...uniqueStageNames],
       uniquePipelineIds: [...uniquePipelineIds],
+      allTags: [...allTags],
       syncedAt: new Date().toISOString(),
     };
 
