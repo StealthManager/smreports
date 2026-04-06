@@ -11,7 +11,7 @@ const GHL_BASE = "https://services.leadconnectorhq.com";
 interface GHLOpportunity {
   id: string;
   name?: string;
-  contact?: { id: string; name?: string; companyName?: string };
+  contact?: { id: string; name?: string; companyName?: string; tags?: string[] };
   monetaryValue?: number;
   pipelineStageId?: string;
   pipelineId?: string;
@@ -20,6 +20,7 @@ interface GHLOpportunity {
   assignedTo?: string;
   createdAt?: string;
   customFields?: Record<string, string>[];
+  tags?: string[];
 }
 
 interface PipelineStage {
@@ -119,6 +120,22 @@ Deno.serve(async (req) => {
 
     console.log(`Fetched ${opportunities.length} opportunities`);
 
+    // Log first opportunity sample to inspect tag structure
+    if (opportunities.length > 0) {
+      const sample = opportunities[0];
+      console.log("Sample opportunity keys:", JSON.stringify(Object.keys(sample)));
+      console.log("Sample opp tags:", JSON.stringify(sample.tags));
+      console.log("Sample contact tags:", JSON.stringify(sample.contact?.tags));
+    }
+
+    // Collect all unique tags
+    const allTags = new Set<string>();
+    for (const opp of opportunities) {
+      const oppTags = opp.tags || opp.contact?.tags || [];
+      for (const t of oppTags) allTags.add(t);
+    }
+    console.log("All unique tags:", JSON.stringify([...allTags]));
+
     // Log unique statuses, stage IDs and pipeline IDs
     const uniqueStatuses = new Set<string>();
     const uniqueStageNames = new Set<string>();
@@ -160,6 +177,7 @@ Deno.serve(async (req) => {
     
     function buildLeadRow(opp: GHLOpportunity) {
       const contactId = opp.contact?.id || opp.id;
+      const tags = opp.tags || opp.contact?.tags || [];
       return {
         ghl_contact_id: contactId,
         name: opp.contact?.name || opp.name || "Unknown",
@@ -169,6 +187,7 @@ Deno.serve(async (req) => {
         revenue: opp.status === "won" ? (opp.monetaryValue || 0) : 0,
         source: opp.source || null,
         created_at: opp.createdAt || new Date().toISOString(),
+        tags,
       };
     }
 
@@ -223,6 +242,7 @@ Deno.serve(async (req) => {
       uniqueStatuses: [...uniqueStatuses],
       uniqueStageNames: [...uniqueStageNames],
       uniquePipelineIds: [...uniquePipelineIds],
+      allTags: [...allTags],
       syncedAt: new Date().toISOString(),
     };
 
