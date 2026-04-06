@@ -144,6 +144,7 @@ export type Database = {
           service: string | null
           show_up: boolean | null
           source: string | null
+          tags: string[] | null
           updated_at: string
           utm: string | null
         }
@@ -169,6 +170,7 @@ export type Database = {
           service?: string | null
           show_up?: boolean | null
           source?: string | null
+          tags?: string[] | null
           updated_at?: string
           utm?: string | null
         }
@@ -194,6 +196,7 @@ export type Database = {
           service?: string | null
           show_up?: boolean | null
           source?: string | null
+          tags?: string[] | null
           updated_at?: string
           utm?: string | null
         }
