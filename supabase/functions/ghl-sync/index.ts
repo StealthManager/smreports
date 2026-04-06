@@ -120,6 +120,22 @@ Deno.serve(async (req) => {
 
     console.log(`Fetched ${opportunities.length} opportunities`);
 
+    // Log first opportunity sample to inspect tag structure
+    if (opportunities.length > 0) {
+      const sample = opportunities[0];
+      console.log("Sample opportunity keys:", JSON.stringify(Object.keys(sample)));
+      console.log("Sample opp tags:", JSON.stringify(sample.tags));
+      console.log("Sample contact tags:", JSON.stringify(sample.contact?.tags));
+    }
+
+    // Collect all unique tags
+    const allTags = new Set<string>();
+    for (const opp of opportunities) {
+      const oppTags = opp.tags || opp.contact?.tags || [];
+      for (const t of oppTags) allTags.add(t);
+    }
+    console.log("All unique tags:", JSON.stringify([...allTags]));
+
     // Log unique statuses, stage IDs and pipeline IDs
     const uniqueStatuses = new Set<string>();
     const uniqueStageNames = new Set<string>();
