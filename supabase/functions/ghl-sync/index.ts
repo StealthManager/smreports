@@ -11,7 +11,7 @@ const GHL_BASE = "https://services.leadconnectorhq.com";
 interface GHLOpportunity {
   id: string;
   name?: string;
-  contact?: { id: string; name?: string; companyName?: string };
+  contact?: { id: string; name?: string; companyName?: string; tags?: string[] };
   monetaryValue?: number;
   pipelineStageId?: string;
   pipelineId?: string;
@@ -20,6 +20,7 @@ interface GHLOpportunity {
   assignedTo?: string;
   createdAt?: string;
   customFields?: Record<string, string>[];
+  tags?: string[];
 }
 
 interface PipelineStage {
