@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { leads as staticLeads, type LeadStage } from "@/data/dashboard-data";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { DateRangeFilter, getDefaultRange, type DateRange } from "./DateRangeFilter";
+import { TagFilter } from "./TagFilter";
+import { useAllLeadTags } from "@/hooks/useAllLeadTags";
 import { Loader2 } from "lucide-react";
 
 const stageColors: Record<string, string> = {
@@ -64,6 +66,8 @@ interface LeadRow {
 export function LeadQualitySection() {
   const [dateRange, setDateRange] = useState<DateRange>(getDefaultRange());
   const [selectedCloser, setSelectedCloser] = useState<string>("All");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const { tags: allTags } = useAllLeadTags();
   const [dbLeads, setDbLeads] = useState<LeadRow[]>([]);
   const [closerNames, setCloserNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
