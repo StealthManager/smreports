@@ -6,8 +6,9 @@ import { AdPerformanceSection } from "@/components/dashboard/AdPerformanceSectio
 import { MaterialApprovalSection } from "@/components/dashboard/MaterialApprovalSection";
 import { IntegrationsSection } from "@/components/dashboard/IntegrationsSection";
 import { TeamSection } from "@/components/dashboard/TeamSection";
+import { RecurringTagsManager } from "@/components/dashboard/RecurringTagsManager";
 
-type Section = "overview" | "leads" | "ads" | "materials" | "integrations" | "team";
+type Section = "overview" | "leads" | "ads" | "materials" | "integrations" | "team" | "settings";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState<Section>("overview");
@@ -20,6 +21,7 @@ const Index = () => {
       case "materials": return <MaterialApprovalSection />;
       case "integrations": return <IntegrationsSection />;
       case "team": return <TeamSection />;
+      case "settings": return <RecurringTagsManager />;
     }
   };
 
