@@ -31,7 +31,10 @@ export function OverviewSection() {
             <h1 className="text-2xl font-bold text-foreground">Dashboard Overview</h1>
             <p className="text-muted-foreground text-sm mt-1">Loading...</p>
           </div>
-          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          <div className="flex items-center gap-2">
+            <TagFilter tags={allTags} selected={selectedTags} onChange={setSelectedTags} />
+            <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          </div>
         </div>
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -50,7 +53,10 @@ export function OverviewSection() {
             {!hasDbData && <span className="ml-2 text-xs text-warning">(sample data)</span>}
           </p>
         </div>
-        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        <div className="flex items-center gap-2">
+          <TagFilter tags={allTags} selected={selectedTags} onChange={setSelectedTags} />
+          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        </div>
       </div>
 
       {/* Top Metrics */}
