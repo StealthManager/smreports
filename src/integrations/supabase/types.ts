@@ -282,6 +282,24 @@ export type Database = {
         }
         Relationships: []
       }
+      recurring_revenue_tags: {
+        Row: {
+          created_at: string
+          id: string
+          tag: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tag: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tag?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

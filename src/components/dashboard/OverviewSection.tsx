@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { useOverviewData } from "@/hooks/useOverviewData";
+import { useAllLeadTags } from "@/hooks/useAllLeadTags";
 import { overviewMetrics as staticMetrics, closerPerformance as staticClosers, weeklyApproval as staticWeekly } from "@/data/dashboard-data";
 import { MetricCard } from "./MetricCard";
+import { TagFilter } from "./TagFilter";
 import { DateRangeFilter, getDefaultRange, type DateRange } from "./DateRangeFilter";
 import { DollarSign, Users, PhoneCall, TrendingUp, Target, Repeat, Loader2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LineChart, Line } from "recharts";
 
 export function OverviewSection() {
   const [dateRange, setDateRange] = useState<DateRange>(getDefaultRange());
-  const { metrics: dbMetrics, closerPerformance: dbClosers, weeklyApproval: dbWeekly, loading } = useOverviewData(dateRange);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const { tags: allTags } = useAllLeadTags();
+  const { metrics: dbMetrics, closerPerformance: dbClosers, weeklyApproval: dbWeekly, loading } = useOverviewData(dateRange, selectedTags.length > 0 ? selectedTags : undefined);
 
   const hasDbData = dbMetrics && dbMetrics.totalSpent > 0;
   const metrics = hasDbData ? dbMetrics : staticMetrics;
@@ -27,7 +31,10 @@ export function OverviewSection() {
             <h1 className="text-2xl font-bold text-foreground">Dashboard Overview</h1>
             <p className="text-muted-foreground text-sm mt-1">Loading...</p>
           </div>
-          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          <div className="flex items-center gap-2">
+            <TagFilter tags={allTags} selected={selectedTags} onChange={setSelectedTags} />
+            <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          </div>
         </div>
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -46,7 +53,10 @@ export function OverviewSection() {
             {!hasDbData && <span className="ml-2 text-xs text-warning">(sample data)</span>}
           </p>
         </div>
-        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        <div className="flex items-center gap-2">
+          <TagFilter tags={allTags} selected={selectedTags} onChange={setSelectedTags} />
+          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        </div>
       </div>
 
       {/* Top Metrics */}
