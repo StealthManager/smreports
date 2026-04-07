@@ -36,7 +36,7 @@ interface WeeklyApproval {
   rate: number;
 }
 
-export function useOverviewData(dateRange?: DateRange) {
+export function useOverviewData(dateRange?: DateRange, selectedTags?: string[]) {
   const [metrics, setMetrics] = useState<OverviewMetrics | null>(null);
   const [closerPerformance, setCloserPerformance] = useState<CloserPerf[]>([]);
   const [weeklyApproval, setWeeklyApproval] = useState<WeeklyApproval[]>([]);
@@ -44,7 +44,7 @@ export function useOverviewData(dateRange?: DateRange) {
 
   useEffect(() => {
     fetchData();
-  }, [dateRange?.from?.toISOString(), dateRange?.to?.toISOString()]);
+  }, [dateRange?.from?.toISOString(), dateRange?.to?.toISOString(), selectedTags?.join(",")]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -52,6 +52,7 @@ export function useOverviewData(dateRange?: DateRange) {
       let leadsQuery = supabase.from("leads").select("*");
       let adSpendQuery = supabase.from("ad_spend").select("*");
       const closersQuery = supabase.from("closers").select("*");
+      const recurringTagsQuery = supabase.from("recurring_revenue_tags").select("tag");
 
       if (dateRange) {
         const fromStr = dateRange.from.toISOString();
@@ -63,15 +64,25 @@ export function useOverviewData(dateRange?: DateRange) {
         adSpendQuery = adSpendQuery.gte("month", fromMonth).lte("month", toMonth);
       }
 
-      const [leadsRes, adSpendRes, closersRes] = await Promise.all([
+      const [leadsRes, adSpendRes, closersRes, recurringTagsRes] = await Promise.all([
         leadsQuery,
         adSpendQuery,
         closersQuery,
+        recurringTagsQuery,
       ]);
 
-      const leads = leadsRes.data || [];
+      let leads = leadsRes.data || [];
       const adSpend = adSpendRes.data || [];
       const closers = closersRes.data || [];
+      const recurringTagsList = (recurringTagsRes.data || []).map((r) => r.tag);
+
+      // Filter by selected tags if provided
+      if (selectedTags && selectedTags.length > 0) {
+        leads = leads.filter((l) => {
+          const lt = (l.tags as string[] | null) || [];
+          return selectedTags.some((t) => lt.includes(t));
+        });
+      }
 
       const closerMap: Record<string, string> = {};
       closers.forEach((c) => { closerMap[c.id] = c.name; });
