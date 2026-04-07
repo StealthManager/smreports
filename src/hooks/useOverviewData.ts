@@ -98,7 +98,10 @@ export function useOverviewData(dateRange?: DateRange, selectedTags?: string[]) 
       const showUpLeads = leads.filter((l) => l.show_up);
       const newRevenue = wonLeads.reduce((s, l) => s + Number(l.revenue || l.deal_size || 0), 0);
       const recurringRevenue = wonLeads
-        .filter((l) => ["WL", "CA", "WL + AM", "WL + CFAM"].includes(l.service || ""))
+        .filter((l) => {
+          const lt = (l.tags as string[] | null) || [];
+          return lt.some((t) => recurringTagsList.includes(t));
+        })
         .reduce((s, l) => s + Number(l.revenue || l.deal_size || 0), 0);
 
       const totalROAS = totalSpent > 0 ? parseFloat((newRevenue / totalSpent).toFixed(2)) : 0;
