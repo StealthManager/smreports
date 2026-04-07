@@ -85,7 +85,14 @@ export function LeadQualitySection() {
           supabase.from("closers").select("*"),
         ]);
 
-        const leads = leadsRes.data || [];
+        let leads = leadsRes.data || [];
+        // Filter by selected tags
+        if (selectedTags.length > 0) {
+          leads = leads.filter((l) => {
+            const lt = (l.tags as string[] | null) || [];
+            return selectedTags.some((t) => lt.includes(t));
+          });
+        }
         const closers = closersRes.data || [];
         const closerMap: Record<string, string> = {};
         closers.forEach((c) => { closerMap[c.id] = c.name; });
@@ -114,7 +121,7 @@ export function LeadQualitySection() {
       }
     }
     fetchLeads();
-  }, [dateRange.from.toISOString(), dateRange.to.toISOString()]);
+  }, [dateRange.from.toISOString(), dateRange.to.toISOString(), selectedTags.join(",")]);
 
   const allLeads = isLive ? dbLeads : staticLeads.map((l) => ({
     ...l,
@@ -155,7 +162,10 @@ export function LeadQualitySection() {
             <h1 className="text-2xl font-bold text-foreground">Lead Quality Analysis</h1>
             <p className="text-muted-foreground text-sm mt-1">Loading...</p>
           </div>
-          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          <div className="flex items-center gap-2">
+            <TagFilter tags={allTags} selected={selectedTags} onChange={setSelectedTags} />
+            <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          </div>
         </div>
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -174,7 +184,10 @@ export function LeadQualitySection() {
             {!isLive && <span className="ml-2 text-xs text-warning">(sample data)</span>}
           </p>
         </div>
-        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        <div className="flex items-center gap-2">
+          <TagFilter tags={allTags} selected={selectedTags} onChange={setSelectedTags} />
+          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        </div>
       </div>
 
       <div className="flex gap-1 bg-muted rounded-lg p-1 w-fit">
