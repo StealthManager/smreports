@@ -28,6 +28,14 @@ interface PipelineStage {
   name: string;
 }
 
+interface GHLUser {
+  id: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -81,6 +89,42 @@ Deno.serve(async (req) => {
       });
     }
 
+    // --- Fetch GHL users for this location and upsert into closers ---
+    const closerMap: Record<string, string> = {}; // ghl_user_id -> closers.id
+    try {
+      const res = await fetch(`${GHL_BASE}/users/?locationId=${locationId}`, {
+        headers: ghlHeaders,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const users: GHLUser[] = data.users || [];
+        console.log(`Fetched ${users.length} GHL users`);
+
+        for (const u of users) {
+          const displayName = u.name || [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email || u.id;
+          const { data: closerData, error } = await supabase
+            .from("closers")
+            .upsert(
+              { ghl_user_id: u.id, name: displayName, is_active: true },
+              { onConflict: "ghl_user_id" }
+            )
+            .select("id")
+            .single();
+
+          if (closerData) {
+            closerMap[u.id] = closerData.id;
+          } else if (error) {
+            console.error(`Failed to upsert closer for GHL user ${u.id}:`, error.message);
+          }
+        }
+        console.log("Closer map:", JSON.stringify(closerMap));
+      } else {
+        console.error("Failed to fetch GHL users:", res.status, await res.text());
+      }
+    } catch (e) {
+      console.error("Error fetching GHL users:", e);
+    }
+
     // --- Fetch pipeline stages from pipelines list endpoint ---
     const stageMap: Record<string, string> = {};
     try {
@@ -120,12 +164,12 @@ Deno.serve(async (req) => {
 
     console.log(`Fetched ${opportunities.length} opportunities`);
 
-    // Log first opportunity sample to inspect tag structure
     if (opportunities.length > 0) {
       const sample = opportunities[0];
       console.log("Sample opportunity keys:", JSON.stringify(Object.keys(sample)));
       console.log("Sample opp tags:", JSON.stringify(sample.tags));
       console.log("Sample contact tags:", JSON.stringify(sample.contact?.tags));
+      console.log("Sample assignedTo:", sample.assignedTo);
     }
 
     // Collect all unique tags
@@ -172,12 +216,26 @@ Deno.serve(async (req) => {
       return "cold_lead";
     }
 
+    // --- Derive qualification from tags ---
+    function deriveQualification(tags: string[]): string {
+      for (const t of tags) {
+        const lower = t.toLowerCase();
+        if (lower.startsWith("sql")) return "sql_qualified";
+      }
+      for (const t of tags) {
+        const lower = t.toLowerCase();
+        if (lower.startsWith("mql")) return "mql";
+      }
+      return "mql";
+    }
+
     // --- Deduplicate by contact ID (keep the latest/highest value) ---
     const contactMap = new Map<string, ReturnType<typeof buildLeadRow>>();
-    
+
     function buildLeadRow(opp: GHLOpportunity) {
       const contactId = opp.contact?.id || opp.id;
       const tags = opp.tags || opp.contact?.tags || [];
+      const closerId = opp.assignedTo ? (closerMap[opp.assignedTo] || null) : null;
       return {
         ghl_contact_id: contactId,
         name: opp.contact?.name || opp.name || "Unknown",
@@ -188,13 +246,14 @@ Deno.serve(async (req) => {
         source: opp.source || null,
         created_at: opp.createdAt || new Date().toISOString(),
         tags,
+        closer_id: closerId,
+        qualification: deriveQualification(tags),
       };
     }
 
     for (const opp of opportunities) {
       const row = buildLeadRow(opp);
       const existing = contactMap.get(row.ghl_contact_id);
-      // Keep the one with higher deal_size or won status
       if (!existing || row.deal_size > existing.deal_size || row.pipeline_stage === "opportunity_won") {
         contactMap.set(row.ghl_contact_id, row);
       }
@@ -243,6 +302,7 @@ Deno.serve(async (req) => {
       uniqueStageNames: [...uniqueStageNames],
       uniquePipelineIds: [...uniquePipelineIds],
       allTags: [...allTags],
+      closersMapped: Object.keys(closerMap).length,
       syncedAt: new Date().toISOString(),
     };
 
