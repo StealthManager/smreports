@@ -150,7 +150,7 @@ Deno.serve(async (req) => {
     let opportunities: GHLOpportunity[] = [];
     let oppPage = `${GHL_BASE}/opportunities/search?location_id=${locationId}&limit=100${pipelineId ? `&pipeline_id=${pipelineId}` : ""}`;
     let oPage = 0;
-    while (oppPage && oPage < 20) {
+    while (oppPage && oPage < 100) {
       const res = await fetch(oppPage, { method: "GET", headers: ghlHeaders });
       if (!res.ok) {
         const errText = await res.text();
@@ -201,14 +201,17 @@ Deno.serve(async (req) => {
       const name = (stageName || "").toLowerCase();
       const status = (opp.status || "").toLowerCase();
 
+      // Exact stage matches first
       if (name.includes("won") || name.includes("closed") || name.includes("client")) return "opportunity_won";
-      if (name.includes("hot")) return "hot_lead";
+      if (name.includes("almost ready") || name.includes("hot")) return "hot_lead";
       if (name.includes("unpaid") || name.includes("invoice")) return "unpaid_invoice";
       if (name.includes("no show") || name.includes("noshow") || name.includes("no-show")) return "no_show";
       if (name.includes("not a good fit") || name.includes("bad fit") || name.includes("disqualified")) return "not_a_good_fit";
-      if (name.includes("general") || name.includes("warm") || name.includes("qualified") || name.includes("booked")) return "general_lead";
-      if (name.includes("new") || name.includes("cold") || name.includes("prospect")) return "cold_lead";
+      if (name.includes("not interested") || name.includes("cancel") || name.includes("account lost") || name.includes("last resort") || name.includes("quarantine")) return "not_a_good_fit";
+      if (name.includes("general") || name.includes("warm") || name.includes("qualified") || name.includes("booked") || name.includes("appointment") || name.includes("rescheduled")) return "general_lead";
+      if (name.includes("new") || name.includes("cold") || name.includes("prospect") || name.includes("replied")) return "cold_lead";
 
+      // Fallback to opportunity status
       if (status === "won") return "opportunity_won";
       if (status === "lost" || status === "abandoned") return "not_a_good_fit";
       if (status === "open") return "general_lead";
