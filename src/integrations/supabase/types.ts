@@ -64,6 +64,7 @@ export type Database = {
       closers: {
         Row: {
           created_at: string
+          ghl_user_id: string | null
           id: string
           is_active: boolean
           name: string
@@ -71,6 +72,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          ghl_user_id?: string | null
           id?: string
           is_active?: boolean
           name: string
@@ -78,6 +80,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          ghl_user_id?: string | null
           id?: string
           is_active?: boolean
           name?: string
