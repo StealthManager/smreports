@@ -201,14 +201,17 @@ Deno.serve(async (req) => {
       const name = (stageName || "").toLowerCase();
       const status = (opp.status || "").toLowerCase();
 
+      // Exact stage matches first
       if (name.includes("won") || name.includes("closed") || name.includes("client")) return "opportunity_won";
-      if (name.includes("hot")) return "hot_lead";
+      if (name.includes("almost ready") || name.includes("hot")) return "hot_lead";
       if (name.includes("unpaid") || name.includes("invoice")) return "unpaid_invoice";
       if (name.includes("no show") || name.includes("noshow") || name.includes("no-show")) return "no_show";
       if (name.includes("not a good fit") || name.includes("bad fit") || name.includes("disqualified")) return "not_a_good_fit";
-      if (name.includes("general") || name.includes("warm") || name.includes("qualified") || name.includes("booked")) return "general_lead";
-      if (name.includes("new") || name.includes("cold") || name.includes("prospect")) return "cold_lead";
+      if (name.includes("not interested") || name.includes("cancel") || name.includes("account lost") || name.includes("last resort") || name.includes("quarantine")) return "not_a_good_fit";
+      if (name.includes("general") || name.includes("warm") || name.includes("qualified") || name.includes("booked") || name.includes("appointment") || name.includes("rescheduled")) return "general_lead";
+      if (name.includes("new") || name.includes("cold") || name.includes("prospect") || name.includes("replied")) return "cold_lead";
 
+      // Fallback to opportunity status
       if (status === "won") return "opportunity_won";
       if (status === "lost" || status === "abandoned") return "not_a_good_fit";
       if (status === "open") return "general_lead";
