@@ -150,7 +150,7 @@ Deno.serve(async (req) => {
     let opportunities: GHLOpportunity[] = [];
     let oppPage = `${GHL_BASE}/opportunities/search?location_id=${locationId}&limit=100${pipelineId ? `&pipeline_id=${pipelineId}` : ""}`;
     let oPage = 0;
-    while (oppPage && oPage < 20) {
+    while (oppPage && oPage < 100) {
       const res = await fetch(oppPage, { method: "GET", headers: ghlHeaders });
       if (!res.ok) {
         const errText = await res.text();
