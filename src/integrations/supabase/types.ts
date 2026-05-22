@@ -305,30 +305,42 @@ export type Database = {
       }
       referral_links: {
         Row: {
+          click_count: number
           contact_name: string
           created_at: string
           destination: string
           id: string
+          is_active: boolean
+          last_clicked_at: string | null
+          short_slug: string
           url: string
           utm_campaign: string
           utm_medium: string
           utm_source: string
         }
         Insert: {
+          click_count?: number
           contact_name: string
           created_at?: string
           destination: string
           id?: string
+          is_active?: boolean
+          last_clicked_at?: string | null
+          short_slug: string
           url: string
           utm_campaign: string
           utm_medium: string
           utm_source: string
         }
         Update: {
+          click_count?: number
           contact_name?: string
           created_at?: string
           destination?: string
           id?: string
+          is_active?: boolean
+          last_clicked_at?: string | null
+          short_slug?: string
           url?: string
           utm_campaign?: string
           utm_medium?: string
@@ -407,6 +419,13 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      resolve_referral_slug: {
+        Args: { _slug: string }
+        Returns: {
+          is_active: boolean
+          url: string
+        }[]
       }
     }
     Enums: {
