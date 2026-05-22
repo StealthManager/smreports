@@ -303,6 +303,39 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_links: {
+        Row: {
+          contact_name: string
+          created_at: string
+          destination: string
+          id: string
+          url: string
+          utm_campaign: string
+          utm_medium: string
+          utm_source: string
+        }
+        Insert: {
+          contact_name: string
+          created_at?: string
+          destination: string
+          id?: string
+          url: string
+          utm_campaign: string
+          utm_medium: string
+          utm_source: string
+        }
+        Update: {
+          contact_name?: string
+          created_at?: string
+          destination?: string
+          id?: string
+          url?: string
+          utm_campaign?: string
+          utm_medium?: string
+          utm_source?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
