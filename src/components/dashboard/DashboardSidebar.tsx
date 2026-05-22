@@ -1,7 +1,7 @@
-import { BarChart3, Users, Megaphone, FileCheck, Link2, UserCog, ChevronLeft, ChevronRight, Settings } from "lucide-react";
+import { BarChart3, Users, Megaphone, FileCheck, Link2, UserCog, ChevronLeft, ChevronRight, Settings, Share2 } from "lucide-react";
 import { useState } from "react";
 
-type Section = "overview" | "leads" | "ads" | "materials" | "integrations" | "team" | "settings";
+type Section = "overview" | "leads" | "ads" | "materials" | "integrations" | "team" | "referral" | "settings";
 
 interface DashboardSidebarProps {
   activeSection: Section;
@@ -15,6 +15,7 @@ const navItems: { id: Section; label: string; icon: React.ElementType }[] = [
   { id: "materials", label: "Material Approval", icon: FileCheck },
   { id: "integrations", label: "Integrations", icon: Link2 },
   { id: "team", label: "Team & Roles", icon: UserCog },
+  { id: "referral", label: "Referral Code", icon: Share2 },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
