@@ -72,6 +72,29 @@ export function ReferralCodeSection() {
   const [destination, setDestination] = useState<Destination>("landing");
   const [links, setLinks] = useState<ReferralLink[]>([]);
   const [loading, setLoading] = useState(false);
+  const [clicksOpen, setClicksOpen] = useState(false);
+  const [clicksLink, setClicksLink] = useState<ReferralLink | null>(null);
+  const [clicks, setClicks] = useState<ReferralClick[]>([]);
+  const [clicksLoading, setClicksLoading] = useState(false);
+
+  const openClicks = async (link: ReferralLink) => {
+    setClicksLink(link);
+    setClicksOpen(true);
+    setClicksLoading(true);
+    setClicks([]);
+    const { data, error } = await supabase
+      .from("referral_clicks")
+      .select("id, clicked_at, user_agent, referer")
+      .eq("referral_link_id", link.id)
+      .order("clicked_at", { ascending: false })
+      .limit(200);
+    setClicksLoading(false);
+    if (error) {
+      toast.error("Erro ao carregar cliques");
+      return;
+    }
+    setClicks((data ?? []) as ReferralClick[]);
+  };
 
   const slug = slugify(contactName);
   const shortOrigin = useMemo(
