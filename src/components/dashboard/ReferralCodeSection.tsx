@@ -62,7 +62,7 @@ export function ReferralCodeSection() {
 
   const slug = slugify(contactName);
   const shortOrigin = useMemo(
-    () => (typeof window !== "undefined" ? window.location.origin : ""),
+    () => `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/r`,
     [],
   );
   const preview = slug
@@ -85,7 +85,7 @@ export function ReferralCodeSection() {
     fetchLinks();
   }, []);
 
-  const shortUrlFor = (s: string) => `${shortOrigin}/r/${s}`;
+  const shortUrlFor = (s: string) => `${shortOrigin}/${s}`;
 
   const handleGenerate = async () => {
     if (!slug) {
