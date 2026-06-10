@@ -20,7 +20,11 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const { data, error } = await supabase.rpc("resolve_referral_slug", { _slug: slug });
+    const { data, error } = await supabase.rpc("resolve_referral_slug", {
+      _slug: slug,
+      _user_agent: req.headers.get("user-agent"),
+      _referer: req.headers.get("referer"),
+    });
 
     if (error) {
       console.error("resolve_referral_slug error", error);

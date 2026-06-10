@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Copy, Trash2, Link as LinkIcon } from "lucide-react";
+import { Copy, Trash2, Link as LinkIcon, BarChart2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
+
+interface ReferralClick {
+  id: string;
+  clicked_at: string;
+  user_agent: string | null;
+  referer: string | null;
+}
 
 type Destination = "landing" | "calendar";
 
@@ -59,6 +72,29 @@ export function ReferralCodeSection() {
   const [destination, setDestination] = useState<Destination>("landing");
   const [links, setLinks] = useState<ReferralLink[]>([]);
   const [loading, setLoading] = useState(false);
+  const [clicksOpen, setClicksOpen] = useState(false);
+  const [clicksLink, setClicksLink] = useState<ReferralLink | null>(null);
+  const [clicks, setClicks] = useState<ReferralClick[]>([]);
+  const [clicksLoading, setClicksLoading] = useState(false);
+
+  const openClicks = async (link: ReferralLink) => {
+    setClicksLink(link);
+    setClicksOpen(true);
+    setClicksLoading(true);
+    setClicks([]);
+    const { data, error } = await supabase
+      .from("referral_clicks")
+      .select("id, clicked_at, user_agent, referer")
+      .eq("referral_link_id", link.id)
+      .order("clicked_at", { ascending: false })
+      .limit(200);
+    setClicksLoading(false);
+    if (error) {
+      toast.error("Erro ao carregar cliques");
+      return;
+    }
+    setClicks((data ?? []) as ReferralClick[]);
+  };
 
   const slug = slugify(contactName);
   const shortOrigin = useMemo(
@@ -284,7 +320,14 @@ export function ReferralCodeSection() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right align-top tabular-nums">
-                        {link.click_count}
+                        <button
+                          onClick={() => openClicks(link)}
+                          className="inline-flex items-center gap-1 hover:text-primary hover:underline"
+                          title="Ver histórico de cliques"
+                        >
+                          <BarChart2 className="w-3.5 h-3.5" />
+                          {link.click_count}
+                        </button>
                       </TableCell>
                       <TableCell className="align-top">
                         <Switch
@@ -305,6 +348,48 @@ export function ReferralCodeSection() {
           </div>
         )}
       </Card>
+
+      <Dialog open={clicksOpen} onOpenChange={setClicksOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Cliques — {clicksLink?.contact_name}
+            </DialogTitle>
+          </DialogHeader>
+          {clicksLoading ? (
+            <p className="text-sm text-muted-foreground">Carregando...</p>
+          ) : clicks.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhum clique registrado ainda.</p>
+          ) : (
+            <div className="max-h-[60vh] overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data/Hora</TableHead>
+                    <TableHead>Origem</TableHead>
+                    <TableHead>Navegador</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {clicks.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="text-xs whitespace-nowrap align-top">
+                        {new Date(c.clicked_at).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-xs align-top max-w-[200px] break-all">
+                        {c.referer || <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="text-xs align-top max-w-[260px] break-all text-muted-foreground">
+                        {c.user_agent || "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
