@@ -303,6 +303,41 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_clicks: {
+        Row: {
+          clicked_at: string
+          id: string
+          referer: string | null
+          referral_link_id: string
+          short_slug: string
+          user_agent: string | null
+        }
+        Insert: {
+          clicked_at?: string
+          id?: string
+          referer?: string | null
+          referral_link_id: string
+          short_slug: string
+          user_agent?: string | null
+        }
+        Update: {
+          clicked_at?: string
+          id?: string
+          referer?: string | null
+          referral_link_id?: string
+          short_slug?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_clicks_referral_link_id_fkey"
+            columns: ["referral_link_id"]
+            isOneToOne: false
+            referencedRelation: "referral_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_links: {
         Row: {
           click_count: number
@@ -420,13 +455,21 @@ export type Database = {
         }
         Returns: boolean
       }
-      resolve_referral_slug: {
-        Args: { _slug: string }
-        Returns: {
-          is_active: boolean
-          url: string
-        }[]
-      }
+      resolve_referral_slug:
+        | {
+            Args: { _slug: string }
+            Returns: {
+              is_active: boolean
+              url: string
+            }[]
+          }
+        | {
+            Args: { _referer?: string; _slug: string; _user_agent?: string }
+            Returns: {
+              is_active: boolean
+              url: string
+            }[]
+          }
     }
     Enums: {
       app_role: "admin" | "closer" | "media_buyer" | "viewer"
