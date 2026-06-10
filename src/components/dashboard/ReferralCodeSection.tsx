@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Copy, Trash2, Link as LinkIcon } from "lucide-react";
+import { Copy, Trash2, Link as LinkIcon, BarChart2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
+
+interface ReferralClick {
+  id: string;
+  clicked_at: string;
+  user_agent: string | null;
+  referer: string | null;
+}
 
 type Destination = "landing" | "calendar";
 
